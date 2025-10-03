@@ -1,192 +1,302 @@
 <meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Mini Earn App</title>
-<style>
-  body { margin:0; font-family: Arial, sans-serif; background:#e0f7fa; }
-  header { background: linear-gradient(90deg,#4caf50,#8bc34a); color:#fff; padding:15px; text-align:center; font-size:18px; font-weight:bold; }
-  #notice { background:#ffeb3b; color:#000; padding:10px; text-align:center; display:none; font-weight:bold; }
-  .tabs { display:flex; justify-content:space-around; position:fixed; bottom:60px; width:100%; background:#fff; border-top:2px solid #ccc; }
-  .tab { flex:1; text-align:center; padding:10px; cursor:pointer; font-weight:bold; color:#555; }
-  .tab img { width:28px; height:28px; display:block; margin:0 auto 5px; }
-  .tab.active { background:#c8e6c9; color:#000; border-top:3px solid #4caf50; }
-  .content { padding:20px; margin-bottom:70px; }
-  button { padding:12px 25px; font-size:16px; cursor:pointer; background:#4caf50; color:#fff; border:none; border-radius:6px; box-shadow:0 3px 6px rgba(0,0,0,0.2); margin:5px 0;}
-  #spinNumbers { font-size:32px; margin:20px 0; font-weight:bold; color:#ff5722; }
-  input { padding:10px; width:90%; margin:5px 0; border-radius:6px; border:1px solid #ccc; }
-  a { color:#fff; text-decoration:none; font-weight:bold; }
-  .supportBtn { display:block; margin-top:20px; padding:12px; background:#2196f3; color:#fff; border-radius:6px; text-align:center; text-decoration:none; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.2); }
-  .historyList { background:#fff; padding:10px; border-radius:6px; max-height:300px; overflow-y:auto; margin-top:10px; }
-  .historyItem { padding:8px; border-bottom:1px solid #ccc; font-size:14px; }
-  #bottomBanner { position:fixed; bottom:0; width:100%; text-align:center; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spin and Earn - Earn Tokens with Ads</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4285f4;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #357ae8;
+        }
+        #ad-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px dashed #ccc;
+            border-radius: 5px;
+        }
+        .hidden {
+            display: none;
+        }
+        #tokens {
+            font-size: 1.2em;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        #withdraw-status {
+            color: #e74c3c;
+            font-size: 0.9em;
+        }
+        .tab {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #eee;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .tab.active {
+            background: #4285f4;
+            color: white;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h1>Spin and Earn</h1>
+        <p>Earn Tokens by Watching Ads and Withdraw to UPI!</p>
 
-<header>Wallet: <span id="wallet">0</span> Coins</header>
-<div id="notice">Click Spin and stay on ad for 10 seconds!</div>
+        <!-- Login/Register Section -->
+        <div id="login-section">
+            <div>
+                <span class="tab active" onclick="showTab('register-tab')">Register</span>
+                <span class="tab" onclick="showTab('login-tab')">Login</span>
+            </div>
 
-<div class="content" id="earnContent">
-  <h2 style="color:#4caf50;">Earn Coins</h2>
-  <div id="spinNumbers">0</div>
-  <button id="spinBtn">Spin</button>
-  <p id="timerText" style="color:#f44336; font-weight:bold;"></p>
-  <img src="https://via.placeholder.com/350x150/81d4fa/000000?text=Earn+Banner" alt="Earn Banner" style="width:100%; margin-top:20px; border-radius:10px;">
-</div>
+            <!-- Register Tab -->
+            <div id="register-tab">
+                <h2>Register</h2>
+                <input type="text" id="register-name" placeholder="Full Name">
+                <input type="tel" id="register-mobile" placeholder="Mobile Number (e.g., +919876543210)">
+                <input type="password" id="register-password" placeholder="Password">
+                <input type="password" id="register-repassword" placeholder="Re-enter Password">
+                <button onclick="register()">Register</button>
+                <button onclick="signInWithGoogle()">Sign in with Google</button>
+            </div>
 
-<div class="content" id="meContent" style="display:none;">
-  <h2 style="color:#2196f3;">Me</h2>
-  <p>Total Coins: <span id="totalCoins">0</span></p>
-  <input type="number" id="withdrawAmount" placeholder="Enter amount (₹)" min="10"><br>
-  <input type="text" id="upiId" placeholder="Enter UPI ID"><br>
-  <button id="withdrawBtn">Withdraw</button>
-  <button id="historyBtn" style="background:#ff9800;">History</button>
-  
-  <div id="historyContainer" class="historyList" style="display:none;"></div>
+            <!-- Login Tab -->
+            <div id="login-tab" class="hidden">
+                <h2>Login</h2>
+                <input type="tel" id="login-mobile" placeholder="Mobile Number (e.g., +919876543210)">
+                <input type="password" id="login-password" placeholder="Password">
+                <button onclick="login()">Login</button>
+                <button onclick="signInWithGoogle()">Sign in with Google</button>
+            </div>
+        </div>
 
-  <a href="https://t.me/Aapmake" target="_blank" class="supportBtn">Customer Support (@Aapmake)</a>
-  <img src="https://via.placeholder.com/350x150/ffcc80/000000?text=Me+Banner" alt="Me Banner" style="width:100%; margin-top:20px; border-radius:10px;">
-</div>
+        <!-- App Section (after login) -->
+        <div id="app-section" class="hidden">
+            <h2>Welcome, <span id="user-name"></span></h2>
+            <p>Your Tokens: <span id="tokens">0</span></p>
 
-<div class="tabs">
-  <div class="tab active" id="earnTab" onclick="showTab('earn')">
-    <img src="https://via.placeholder.com/28/4caf50/ffffff?text=E" alt="Earn">
-    Earn
-  </div>
-  <div class="tab" id="meTab" onclick="showTab('me')">
-    <img src="https://via.placeholder.com/28/2196f3/ffffff?text=M" alt="Me">
-    Me
-  </div>
-</div>
+            <!-- Ad Section -->
+            <div id="ad-section">
+                <h3>Watch Ad to Earn 10 Tokens</h3>
+                <!-- Adsterra Banner Placeholder -->
+                <script type="text/javascript">
+                    atOptions = {
+                        'key': 'YOUR_BANNER_KEY_HERE',  // Replace with your Adsterra Banner ID/Key
+                        'format': 'iframe',
+                        'height': 250,
+                        'width': 300,
+                        'params': {}
+                    };
+                </script>
+                <script type="text/javascript" src="//www.topcreativeformat.com/YOUR_BANNER_INVITE_CODE_HERE/invoke.js"></script>
 
-<div id="bottomBanner">
-  <script type="text/javascript">
-    atOptions = { 
-      'key' : '7b21d18ad07f88a857fdcb7b3953401f', 
-      'format' : 'iframe', 
-      'height' : 50, 
-      'width' : 320, 
-      'params' : {} 
-    }; 
-  </script> 
-  <script type="text/javascript" src="//www.highperformanceformat.com/7b21d18ad07f88a857fdcb7b3953401f/invoke.js"></script>
-</div>
+                <!-- Adsterra Smart Link Button -->
+                <button onclick="earnTokens()">Click Smart Link to Earn (Simulate View)</button>
+            </div>
 
-<script>
-let wallet = Number(localStorage.getItem('wallet') || 0);
-document.getElementById('wallet').innerText = wallet;
-document.getElementById('totalCoins').innerText = wallet;
+            <!-- Withdraw Section -->
+            <h3>Withdraw Tokens to UPI</h3>
+            <input type="text" id="upi-id" placeholder="Your UPI ID (e.g., name@upi)">
+            <button onclick="withdraw()">Withdraw (Min 100 Tokens)</button>
+            <p id="withdraw-status"></p>
 
-let spinTimer;
-let coinsGenerated = 0;
+            <button onclick="signOut()">Logout</button>
+        </div>
+    </div>
 
-function showTab(tab) {
-  document.getElementById('earnContent').style.display = tab==='earn'?'block':'none';
-  document.getElementById('meContent').style.display = tab==='me'?'block':'none';
-  document.getElementById('earnTab').classList.remove('active');
-  document.getElementById('meTab').classList.remove('active');
-  if(tab==='earn') document.getElementById('earnTab').classList.add('active');
-  else document.getElementById('meTab').classList.add('active');
-}
+    <script type="module">
+        // Import Firebase SDK
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+        import { getAuth, signInWithPopup, GoogleAuthProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+        import { getDatabase, ref, onValue, update } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js';
 
-function addHistory(type, coins) {
-  const history = JSON.parse(localStorage.getItem('history') || '[]');
-  const date = new Date();
-  history.unshift({type, coins, time:date.toLocaleString()});
-  localStorage.setItem('history', JSON.stringify(history));
-}
+        // Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyBpt33T5yUjdiMm6YOBPZFVtQhI8ayG0LI",
+            authDomain: "spin-and-earn-15995.firebaseapp.com",
+            projectId: "spin-and-earn-15995",
+            storageBucket: "spin-and-earn-15995.firebasestorage.app",
+            messagingSenderId: "1069240462999",
+            appId: "1:1069240462999:web:4a58e9877b01eb212443d2",
+            measurementId: "G-QZQCD5G08M"
+        };
 
-function updateHistoryUI() {
-  const history = JSON.parse(localStorage.getItem('history') || '[]');
-  const container = document.getElementById('historyContainer');
-  container.innerHTML = '';
-  if(history.length===0) container.innerHTML = '<p>No history yet.</p>';
-  history.forEach(item=>{
-    const div = document.createElement('div');
-    div.className='historyItem';
-    div.innerText = `${item.time} - ${item.type}: ${item.coins} coins`;
-    container.appendChild(div);
-  });
-}
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getDatabase(app);
+        const provider = new GoogleAuthProvider();
 
-document.getElementById('spinBtn').addEventListener('click', function() {
-  // Show notice 10 sec
-  const notice = document.getElementById('notice');
-  notice.style.display = 'block';
-  setTimeout(()=>{ notice.style.display='none'; }, 10000);
+        // Tab Switching
+        window.showTab = function(tabId) {
+            document.getElementById('register-tab').classList.add('hidden');
+            document.getElementById('login-tab').classList.add('hidden');
+            document.getElementById(tabId).classList.remove('hidden');
 
-  // Generate random coins 10-100
-  coinsGenerated = Math.floor(Math.random()*91)+10;
-  document.getElementById('spinNumbers').innerText = coinsGenerated;
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelector(`[onclick="showTab('${tabId}')"]`).classList.add('active');
+        };
 
-  // Add to wallet
-  wallet += coinsGenerated;
-  localStorage.setItem('wallet', wallet);
-  document.getElementById('wallet').innerText = wallet;
-  document.getElementById('totalCoins').innerText = wallet;
+        // Register
+        window.register = function() {
+            const name = document.getElementById('register-name').value;
+            const mobile = document.getElementById('register-mobile').value;
+            const password = document.getElementById('register-password').value;
+            const repassword = document.getElementById('register-repassword').value;
 
-  // Save history
-  addHistory('Spin', coinsGenerated);
-  updateHistoryUI();
+            if (!name || !mobile || !password || !repassword) {
+                alert('Please fill all fields.');
+                return;
+            }
 
-  // Open AdsItara link in new tab
-  window.open('https://www.revenuecpmgate.com/efhz2pvwv2?key=e7871eb5300a3c2adca2a5d2f1c3b57a', '_blank');
+            if (password !== repassword) {
+                alert('Passwords do not match.');
+                return;
+            }
 
-  // Start cooldown timer 20 sec
-  let countdown = 20;
-  const timerText = document.getElementById('timerText');
-  timerText.innerText = `Next spin in ${countdown}s`;
-  clearInterval(spinTimer);
-  spinTimer = setInterval(()=>{
-    countdown--;
-    if(countdown<=0){
-      clearInterval(spinTimer);
-      timerText.innerText = '';
-    } else {
-      timerText.innerText = `Next spin in ${countdown}s`;
-    }
-  },1000);
-});
+            const email = `${mobile.replace('+', '')}@spinandearn.com`;
+            createUserWithEmailAndPassword(auth, email, password)
+                .then(userCredential => {
+                    const user = userCredential.user;
+                    return updateProfile(user, { displayName: name }).then(() => {
+                        update(ref(db, 'users/' + user.uid), { mobile: mobile });
+                    });
+                })
+                .then(() => {
+                    alert('Registration Successful!');
+                })
+                .catch(error => alert('Registration Error: ' + error.message));
+        };
 
-document.getElementById('withdrawBtn').addEventListener('click', function() {
-  const amount = Number(document.getElementById('withdrawAmount').value);
-  const upi = document.getElementById('upiId').value;
-  if(amount<10){
-    alert('Minimum withdrawal 10₹');
-    return;
-  }
-  if(wallet < amount*1000){
-    alert('Not enough coins');
-    return;
-  }
-  if(upi===''){
-    alert('Enter UPI ID');
-    return;
-  }
-  wallet -= amount*1000;
-  localStorage.setItem('wallet', wallet);
-  document.getElementById('wallet').innerText = wallet;
-  document.getElementById('totalCoins').innerText = wallet;
+        // Login
+        window.login = function() {
+            const mobile = document.getElementById('login-mobile').value;
+            const password = document.getElementById('login-password').value;
 
-  addHistory('Withdrawal', amount*1000);
-  updateHistoryUI();
+            if (!mobile || !password) {
+                alert('Please fill all fields.');
+                return;
+            }
 
-  alert(`Withdrawal request of ₹${amount} sent to ${upi}`);
-  document.getElementById('withdrawAmount').value='';
-  document.getElementById('upiId').value='';
-});
+            const email = `${mobile.replace('+', '')}@spinandearn.com`;
+            signInWithEmailAndPassword(auth, email, password)
+                .then(() => alert('Login Successful!'))
+                .catch(error => alert('Login Error: ' + error.message));
+        };
 
-document.getElementById('historyBtn').addEventListener('click', function() {
-  const container = document.getElementById('historyContainer');
-  container.style.display = container.style.display==='none'?'block':'none';
-  updateHistoryUI();
-});
+        // Google Sign-In
+        window.signInWithGoogle = function() {
+            signInWithPopup(auth, provider)
+                .then(result => {
+                    const user = result.user;
+                    // Save mobile as empty for Google users, can prompt later
+                    update(ref(db, 'users/' + user.uid), { mobile: '' });
+                    alert('Signed in with Google!');
+                })
+                .catch(error => alert('Google Sign-In Error: ' + error.message));
+        };
 
-// Initial load
-updateHistoryUI();
-</script>
+        // Sign Out
+        window.signOut = function() {
+            signOut(auth)
+                .then(() => alert('Logged out successfully!'))
+                .catch(error => alert('Logout Error: ' + error.message));
+        };
 
+        // Auth State Listener
+        onAuthStateChanged(auth, user => {
+            if (user) {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('app-section').classList.remove('hidden');
+                document.getElementById('user-name').innerText = user.displayName || user.email.split('@')[0];
+                loadTokens(user.uid);
+            } else {
+                document.getElementById('login-section').classList.remove('hidden');
+                document.getElementById('app-section').classList.add('hidden');
+            }
+        });
+
+        // Load Tokens
+        function loadTokens(uid) {
+            const tokensRef = ref(db, 'users/' + user.uid + '/tokens');
+            onValue(tokensRef, snapshot => {
+                const tokens = snapshot.val() || 0;
+                document.getElementById('tokens').innerText = tokens;
+            });
+        }
+
+        // Earn Tokens (Simulate ad view/click)
+        window.earnTokens = function() {
+            const user = auth.currentUser;
+            if (user) {
+                window.open('YOUR_ADSTERRA_SMART_LINK_URL_HERE', '_blank'); // Replace with your Adsterra Smart Link URL
+
+                const updates = {};
+                updates['users/' + user.uid + '/tokens'] = (parseInt(document.getElementById('tokens').innerText) || 0) + 10;
+                update(ref(db), updates)
+                    .then(() => alert('Earned 10 Tokens!'))
+                    .catch(error => alert('Error awarding tokens: ' + error.message));
+            } else {
+                alert('Please sign in first.');
+            }
+        };
+
+        // Withdraw (Simulate)
+        window.withdraw = function() {
+            const user = auth.currentUser;
+            const upi = document.getElementById('upi-id').value;
+            const tokens = parseInt(document.getElementById('tokens').innerText) || 0;
+            if (user && upi && tokens >= 100) {
+                const updates = {};
+                updates['users/' + user.uid + '/tokens'] = tokens - 100;
+                update(ref(db), updates)
+                    .then(() => {
+                        document.getElementById('withdraw-status').innerText = `Withdrawal Requested to ${upi}! (Simulated)`;
+                    })
+                    .catch(error => alert('Error processing withdrawal: ' + error.message));
+            } else {
+                alert('Minimum 100 Tokens required or enter a valid UPI ID.');
+            }
+        };
+    </script>
 </body>
 </html>
