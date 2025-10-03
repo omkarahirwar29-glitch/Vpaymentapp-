@@ -1,0 +1,192 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini Earn App</title>
+<style>
+  body { margin:0; font-family: Arial, sans-serif; background:#e0f7fa; }
+  header { background: linear-gradient(90deg,#4caf50,#8bc34a); color:#fff; padding:15px; text-align:center; font-size:18px; font-weight:bold; }
+  #notice { background:#ffeb3b; color:#000; padding:10px; text-align:center; display:none; font-weight:bold; }
+  .tabs { display:flex; justify-content:space-around; position:fixed; bottom:60px; width:100%; background:#fff; border-top:2px solid #ccc; }
+  .tab { flex:1; text-align:center; padding:10px; cursor:pointer; font-weight:bold; color:#555; }
+  .tab img { width:28px; height:28px; display:block; margin:0 auto 5px; }
+  .tab.active { background:#c8e6c9; color:#000; border-top:3px solid #4caf50; }
+  .content { padding:20px; margin-bottom:70px; }
+  button { padding:12px 25px; font-size:16px; cursor:pointer; background:#4caf50; color:#fff; border:none; border-radius:6px; box-shadow:0 3px 6px rgba(0,0,0,0.2); margin:5px 0;}
+  #spinNumbers { font-size:32px; margin:20px 0; font-weight:bold; color:#ff5722; }
+  input { padding:10px; width:90%; margin:5px 0; border-radius:6px; border:1px solid #ccc; }
+  a { color:#fff; text-decoration:none; font-weight:bold; }
+  .supportBtn { display:block; margin-top:20px; padding:12px; background:#2196f3; color:#fff; border-radius:6px; text-align:center; text-decoration:none; font-weight:bold; box-shadow:0 2px 5px rgba(0,0,0,0.2); }
+  .historyList { background:#fff; padding:10px; border-radius:6px; max-height:300px; overflow-y:auto; margin-top:10px; }
+  .historyItem { padding:8px; border-bottom:1px solid #ccc; font-size:14px; }
+  #bottomBanner { position:fixed; bottom:0; width:100%; text-align:center; }
+</style>
+</head>
+<body>
+
+<header>Wallet: <span id="wallet">0</span> Coins</header>
+<div id="notice">Click Spin and stay on ad for 10 seconds!</div>
+
+<div class="content" id="earnContent">
+  <h2 style="color:#4caf50;">Earn Coins</h2>
+  <div id="spinNumbers">0</div>
+  <button id="spinBtn">Spin</button>
+  <p id="timerText" style="color:#f44336; font-weight:bold;"></p>
+  <img src="https://via.placeholder.com/350x150/81d4fa/000000?text=Earn+Banner" alt="Earn Banner" style="width:100%; margin-top:20px; border-radius:10px;">
+</div>
+
+<div class="content" id="meContent" style="display:none;">
+  <h2 style="color:#2196f3;">Me</h2>
+  <p>Total Coins: <span id="totalCoins">0</span></p>
+  <input type="number" id="withdrawAmount" placeholder="Enter amount (₹)" min="10"><br>
+  <input type="text" id="upiId" placeholder="Enter UPI ID"><br>
+  <button id="withdrawBtn">Withdraw</button>
+  <button id="historyBtn" style="background:#ff9800;">History</button>
+  
+  <div id="historyContainer" class="historyList" style="display:none;"></div>
+
+  <a href="https://t.me/Aapmake" target="_blank" class="supportBtn">Customer Support (@Aapmake)</a>
+  <img src="https://via.placeholder.com/350x150/ffcc80/000000?text=Me+Banner" alt="Me Banner" style="width:100%; margin-top:20px; border-radius:10px;">
+</div>
+
+<div class="tabs">
+  <div class="tab active" id="earnTab" onclick="showTab('earn')">
+    <img src="https://via.placeholder.com/28/4caf50/ffffff?text=E" alt="Earn">
+    Earn
+  </div>
+  <div class="tab" id="meTab" onclick="showTab('me')">
+    <img src="https://via.placeholder.com/28/2196f3/ffffff?text=M" alt="Me">
+    Me
+  </div>
+</div>
+
+<div id="bottomBanner">
+  <script type="text/javascript">
+    atOptions = { 
+      'key' : '7b21d18ad07f88a857fdcb7b3953401f', 
+      'format' : 'iframe', 
+      'height' : 50, 
+      'width' : 320, 
+      'params' : {} 
+    }; 
+  </script> 
+  <script type="text/javascript" src="//www.highperformanceformat.com/7b21d18ad07f88a857fdcb7b3953401f/invoke.js"></script>
+</div>
+
+<script>
+let wallet = Number(localStorage.getItem('wallet') || 0);
+document.getElementById('wallet').innerText = wallet;
+document.getElementById('totalCoins').innerText = wallet;
+
+let spinTimer;
+let coinsGenerated = 0;
+
+function showTab(tab) {
+  document.getElementById('earnContent').style.display = tab==='earn'?'block':'none';
+  document.getElementById('meContent').style.display = tab==='me'?'block':'none';
+  document.getElementById('earnTab').classList.remove('active');
+  document.getElementById('meTab').classList.remove('active');
+  if(tab==='earn') document.getElementById('earnTab').classList.add('active');
+  else document.getElementById('meTab').classList.add('active');
+}
+
+function addHistory(type, coins) {
+  const history = JSON.parse(localStorage.getItem('history') || '[]');
+  const date = new Date();
+  history.unshift({type, coins, time:date.toLocaleString()});
+  localStorage.setItem('history', JSON.stringify(history));
+}
+
+function updateHistoryUI() {
+  const history = JSON.parse(localStorage.getItem('history') || '[]');
+  const container = document.getElementById('historyContainer');
+  container.innerHTML = '';
+  if(history.length===0) container.innerHTML = '<p>No history yet.</p>';
+  history.forEach(item=>{
+    const div = document.createElement('div');
+    div.className='historyItem';
+    div.innerText = `${item.time} - ${item.type}: ${item.coins} coins`;
+    container.appendChild(div);
+  });
+}
+
+document.getElementById('spinBtn').addEventListener('click', function() {
+  // Show notice 10 sec
+  const notice = document.getElementById('notice');
+  notice.style.display = 'block';
+  setTimeout(()=>{ notice.style.display='none'; }, 10000);
+
+  // Generate random coins 10-100
+  coinsGenerated = Math.floor(Math.random()*91)+10;
+  document.getElementById('spinNumbers').innerText = coinsGenerated;
+
+  // Add to wallet
+  wallet += coinsGenerated;
+  localStorage.setItem('wallet', wallet);
+  document.getElementById('wallet').innerText = wallet;
+  document.getElementById('totalCoins').innerText = wallet;
+
+  // Save history
+  addHistory('Spin', coinsGenerated);
+  updateHistoryUI();
+
+  // Open AdsItara link in new tab
+  window.open('https://www.revenuecpmgate.com/efhz2pvwv2?key=e7871eb5300a3c2adca2a5d2f1c3b57a', '_blank');
+
+  // Start cooldown timer 20 sec
+  let countdown = 20;
+  const timerText = document.getElementById('timerText');
+  timerText.innerText = `Next spin in ${countdown}s`;
+  clearInterval(spinTimer);
+  spinTimer = setInterval(()=>{
+    countdown--;
+    if(countdown<=0){
+      clearInterval(spinTimer);
+      timerText.innerText = '';
+    } else {
+      timerText.innerText = `Next spin in ${countdown}s`;
+    }
+  },1000);
+});
+
+document.getElementById('withdrawBtn').addEventListener('click', function() {
+  const amount = Number(document.getElementById('withdrawAmount').value);
+  const upi = document.getElementById('upiId').value;
+  if(amount<10){
+    alert('Minimum withdrawal 10₹');
+    return;
+  }
+  if(wallet < amount*1000){
+    alert('Not enough coins');
+    return;
+  }
+  if(upi===''){
+    alert('Enter UPI ID');
+    return;
+  }
+  wallet -= amount*1000;
+  localStorage.setItem('wallet', wallet);
+  document.getElementById('wallet').innerText = wallet;
+  document.getElementById('totalCoins').innerText = wallet;
+
+  addHistory('Withdrawal', amount*1000);
+  updateHistoryUI();
+
+  alert(`Withdrawal request of ₹${amount} sent to ${upi}`);
+  document.getElementById('withdrawAmount').value='';
+  document.getElementById('upiId').value='';
+});
+
+document.getElementById('historyBtn').addEventListener('click', function() {
+  const container = document.getElementById('historyContainer');
+  container.style.display = container.style.display==='none'?'block':'none';
+  updateHistoryUI();
+});
+
+// Initial load
+updateHistoryUI();
+</script>
+
+</body>
+</html>
